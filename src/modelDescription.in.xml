@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription
+  fmiVersion="2.0"
+  modelName="osi-ros2-bridge"
+  guid="@FMUGUID@"
+  description="Send OSI SensorData output as ROS2 messages"
+  author="Persival GmbH"
+  version="0.1.0"
+  generationTool="manual"
+  generationDateAndTime="@FMUTIMESTAMP@"
+  variableNamingConvention="structured">
+  <CoSimulation
+    modelIdentifier="osi-ros2-bridge"
+    canHandleVariableCommunicationStepSize="true"
+    canNotUseMemoryManagementFunctions="true">
+    <SourceFiles>
+      <File name="OSMP.cpp"/>
+    </SourceFiles>
+  </CoSimulation>
+  <LogCategories>
+    <Category name="FMI" description="Enable logging of all FMI calls"/>
+    <Category name="OSMP" description="Enable OSMP-related logging"/>
+    <Category name="OSI" description="Enable OSI-related logging"/>
+  </LogCategories>
+  <DefaultExperiment startTime="0.0" stepSize="0.020"/>
+  <VendorAnnotations>
+    <Tool name="net.pmsf.osmp" xmlns:osmp="http://xsd.pmsf.net/OSISensorModelPackaging"><osmp:osmp version="@OSMPVERSION@" osi-version="@OSIVERSION@"/></Tool>
+  </VendorAnnotations>
+  <ModelVariables>
+    <ScalarVariable name="OSMPSensorDataIn.base.lo" valueReference="0" causality="input" variability="discrete">
+      <Integer start="0"/>
+      <Annotations>
+        <Tool name="net.pmsf.osmp" xmlns:osmp="http://xsd.pmsf.net/OSISensorModelPackaging"><osmp:osmp-binary-variable name="OSMPSensorDataIn" role="base.lo" mime-type="application/x-open-simulation-interface; type=SensorData; version=@OSIVERSION@"/></Tool>
+      </Annotations>
+    </ScalarVariable>
+    <ScalarVariable name="OSMPSensorDataIn.base.hi" valueReference="1" causality="input" variability="discrete">
+      <Integer start="0"/>
+      <Annotations>
+        <Tool name="net.pmsf.osmp" xmlns:osmp="http://xsd.pmsf.net/OSISensorModelPackaging"><osmp:osmp-binary-variable name="OSMPSensorDataIn" role="base.hi" mime-type="application/x-open-simulation-interface; type=SensorData; version=@OSIVERSION@"/></Tool>
+      </Annotations>
+    </ScalarVariable>
+    <ScalarVariable name="OSMPSensorDataIn.size" valueReference="2" causality="input" variability="discrete">
+      <Integer start="0"/>
+      <Annotations>
+        <Tool name="net.pmsf.osmp" xmlns:osmp="http://xsd.pmsf.net/OSISensorModelPackaging"><osmp:osmp-binary-variable name="OSMPSensorDataIn" role="size" mime-type="application/x-open-simulation-interface; type=SensorData; version=@OSIVERSION@"/></Tool>
+      </Annotations>
+    </ScalarVariable>
+    <ScalarVariable name="valid" valueReference="0" causality="output" variability="discrete" initial="exact">
+      <Boolean start="false"/>
+    </ScalarVariable>
+    <ScalarVariable name="pcl_topic" valueReference="0" causality="parameter" variability="fixed" initial="exact">
+      <String start=""/>
+    </ScalarVariable>
+    <ScalarVariable name="frame_id" valueReference="1" causality="parameter" variability="fixed" initial="exact">
+      <String start=""/>
+    </ScalarVariable>
+    <ScalarVariable name="publish_interval_ms" valueReference="3" causality="parameter" variability="fixed" initial="exact">
+      <Integer start="100"/>
+    </ScalarVariable>
+  </ModelVariables>
+  <ModelStructure>
+    <Outputs>
+      <Unknown index="4"/>
+    </Outputs>
+  </ModelStructure>
+</fmiModelDescription>
