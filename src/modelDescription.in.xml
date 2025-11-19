@@ -5,7 +5,7 @@
   guid="@FMUGUID@"
   description="Send OSI SensorData output as ROS2 messages"
   author="Persival GmbH"
-  version="0.5.2"
+  version="0.1.0"
   generationTool="manual"
   generationDateAndTime="@FMUTIMESTAMP@"
   variableNamingConvention="structured">
