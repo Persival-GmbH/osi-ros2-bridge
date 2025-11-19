@@ -1,0 +1,6 @@
+[submodule "lib/fmi2"]
+	path = lib/fmi2
+	url = https://github.com/modelica/fmi-standard.git
+[submodule "lib/osi-cpp"]
+	path = lib/osi-cpp
+	url = https://github.com/OpenSimulationInterface/osi-cpp.git
