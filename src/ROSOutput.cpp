@@ -71,14 +71,14 @@ void ROSOutput::PublishGtObjects(osi3::SensorData& sensor_data)
             color_gt_moving.r = 0.8;
             color_gt_moving.g = 0.0;
             color_gt_moving.b = 0.0;
-            color_gt_moving.a = 1.0;
+            color_gt_moving.a = 0.5;
         }
         else
         {
             color_gt_moving.r = 0.8;
             color_gt_moving.g = 0.8;
             color_gt_moving.b = 0.8;
-            color_gt_moving.a = 1.0;
+            color_gt_moving.a = 0.5;
         }
 
         geometry_msgs::msg::Pose pose_gt_moving;
