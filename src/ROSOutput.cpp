@@ -239,7 +239,6 @@ void ROSOutput::PublishDetections(const osi3::SensorData& sensor_data, const std
 
 void ROSOutput::PublishImage(const osi3::SensorData& sensor_data, const std::string& frame_id)
 {
-    std::cout << "Entering PublishImage()" << std::endl;
     if (sensor_data.sensor_view(0).camera_sensor_view_size() < 1)
     {
         return;
@@ -276,8 +275,6 @@ void ROSOutput::PublishImage(const osi3::SensorData& sensor_data, const std::str
             std::cout << "Unsupported OSI pixel format!" << std::endl;
             return;
     }
-
-    std::cout << "test" << std::endl;
 
     // No padding assumed (OSI typically stores contiguous image data)
     msg.step = msg.width * channels;
