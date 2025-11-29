@@ -7,11 +7,12 @@ If the ASAM OSI model_reference contains a path to a 3D model file and in the sa
 
 Here is a list of all ASAM OSI fields that are sent as ROS2 messages.
 
-| OSI Field                                        | ROS Topic                          | Message Type |
-|--------------------------------------------------|------------------------------------|--------------|
-| sensor_view(0).global_ground_truth.moving_object | gt_marker_<sensor_id>              | MarkerArray  |
-| feature_data.lidar/radar_sensor(0).detection     | detection_<sensor_id>              | PointCloud2  |
-| moving_object                                    | detectedobjects_marker_<sensor_id> | MarkerArray  |
+| OSI Field                                         | ROS Topic                          | Message Type |
+|---------------------------------------------------|------------------------------------|--------------|
+| sensor_view(0).global_ground_truth.moving_object  | gt_marker_<sensor_id>              | MarkerArray  |
+| feature_data.lidar/radar_sensor(0).detection      | detection_<sensor_id>              | PointCloud2  |
+| sensor_view(0).camera_sensor_view(0).image_data() | camera_<sensor_id>                 | Image        |
+| moving_object                                     | detectedobjects_marker_<sensor_id> | MarkerArray  |
 
 The <sensor_id> is taken from the sensor_data.sensor_id field.
 
@@ -24,7 +25,6 @@ It contains the following frames, that are coherent with the corresponding [ASAM
 | bb_center              | Center of the bounding box of the host vehicle                                                          |
 | base_link              | Host vehicle coordinate system (center of rear axle) as defined by the osi3::bbcenter_to_rear parameter |
 | detections_<sensor_id> | Sensor coordinate system of sensor with given ID                                                        |
-
 
 ## Parameters
 
@@ -41,6 +41,7 @@ Install dependencies and use built and packaged FMU in a co-simulation.
 
 Install [ROS 2](https://docs.ros.org/en/humble/) according to the official install instructions.
 Also install the following package:
+
 - `ros-<distro>-pcl-ros`
 - `ros-<distro>-tf2-geometry-msgs`
 

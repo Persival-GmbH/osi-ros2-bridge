@@ -42,6 +42,7 @@ void ROSOutput::Init(const std::string& pcl_topic, const int detection_interval_
 
     detection_interval_ms_ = detection_interval_ms;
     const string detections_topic = pcl_topic.empty() ? "/detections_" + sensor_id : pcl_topic;
+    const string camera_topic = pcl_topic.empty() ? "/camera_" + sensor_id : pcl_topic;
 
     node_ = make_shared<rclcpp::Node>("osi_publisher_" + sensor_id);
     if (frame_id.empty())
@@ -51,6 +52,7 @@ void ROSOutput::Init(const std::string& pcl_topic, const int detection_interval_
         transform_broadcaster_ = make_shared<tf2_ros::TransformBroadcaster>(node_);
     }
     detections_publisher_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>(detections_topic, rclcpp::QoS(1000));
+    camera_publisher_ = node_->create_publisher<sensor_msgs::msg::Image>(camera_topic, rclcpp::QoS(1000));
 
 }
 
@@ -155,12 +157,15 @@ void ROSOutput::PublishDetections(const osi3::SensorData& sensor_data, const std
     {
         return;
     }
+    bool is_radar = false;
     if (sensor_data.feature_data().lidar_sensor().empty())
+    {
+        is_radar = true;
+    }
+    if (is_radar && sensor_data.feature_data().radar_sensor().empty())
     {
         return;
     }
-
-    const auto& lidar_sensor = sensor_data.feature_data().lidar_sensor(0);
 
     pcl::PointCloud<pcl::PointXYZ> cloud_tmp;
     pcl::PointCloud<persival_pcl::PointXYZIO> cloud;
@@ -176,21 +181,44 @@ void ROSOutput::PublishDetections(const osi3::SensorData& sensor_data, const std
     }
 
     /// Run through all detections
-    for (const auto& detection : lidar_sensor.detection())
+    if (!is_radar)
     {
-        auto x = static_cast<float>(detection.position().distance() * cos(detection.position().azimuth()) * cos(detection.position().elevation()));
-        auto y = static_cast<float>(detection.position().distance() * sin(detection.position().azimuth()) * cos(detection.position().elevation()));
-        auto z = static_cast<float>(detection.position().distance() * sin(detection.position().elevation()));
-        cloud_tmp.points.emplace_back(x, y, z);
+        const auto& detection_data = sensor_data.feature_data().lidar_sensor(0);
+        for (const auto& detection : detection_data.detection())
+        {
+            auto x = static_cast<float>(detection.position().distance() * cos(detection.position().azimuth()) * cos(detection.position().elevation()));
+            auto y = static_cast<float>(detection.position().distance() * sin(detection.position().azimuth()) * cos(detection.position().elevation()));
+            auto z = static_cast<float>(detection.position().distance() * sin(detection.position().elevation()));
+            cloud_tmp.points.emplace_back(x, y, z);
+        }
+        pcl::copyPointCloud(cloud_tmp, cloud);
+        /// Add further information to all detections
+        for (int detection_idx = 0; detection_idx < detection_data.detection_size(); detection_idx++)
+        {
+            cloud.points[detection_idx].intensity = static_cast<float>(detection_data.detection(detection_idx).intensity());
+            cloud.points[detection_idx].reflectivity = static_cast<float>(detection_data.detection(detection_idx).reflectivity());
+            cloud.points[detection_idx].object_id = static_cast<int>(detection_data.detection(detection_idx).object_id().value());
+            cloud.points[detection_idx].rel_velocity = static_cast<float>(detection_data.detection(detection_idx).radial_velocity());
+        }
     }
-    pcl::copyPointCloud(cloud_tmp, cloud);
-    /// Add further information to all detections
-    for (int detection_idx = 0; detection_idx < lidar_sensor.detection_size(); detection_idx++)
+    else
     {
-        cloud.points[detection_idx].intensity = static_cast<float>(lidar_sensor.detection(detection_idx).intensity());
-        cloud.points[detection_idx].reflectivity = static_cast<float>(lidar_sensor.detection(detection_idx).reflectivity());
-        cloud.points[detection_idx].object_id = static_cast<int>(lidar_sensor.detection(detection_idx).object_id().value());
-        cloud.points[detection_idx].rel_velocity = static_cast<float>(lidar_sensor.detection(detection_idx).radial_velocity());
+        const auto& detection_data = sensor_data.feature_data().radar_sensor(0);
+        for (const auto& detection : detection_data.detection())
+        {
+            auto x = static_cast<float>(detection.position().distance() * cos(detection.position().azimuth()) * cos(detection.position().elevation()));
+            auto y = static_cast<float>(detection.position().distance() * sin(detection.position().azimuth()) * cos(detection.position().elevation()));
+            auto z = static_cast<float>(detection.position().distance() * sin(detection.position().elevation()));
+            cloud_tmp.points.emplace_back(x, y, z);
+        }
+        pcl::copyPointCloud(cloud_tmp, cloud);
+        /// Add further information to all detections
+        for (int detection_idx = 0; detection_idx < detection_data.detection_size(); detection_idx++)
+        {
+            cloud.points[detection_idx].intensity = static_cast<float>(detection_data.detection(detection_idx).rcs());
+            cloud.points[detection_idx].object_id = static_cast<int>(detection_data.detection(detection_idx).object_id().value());
+            cloud.points[detection_idx].rel_velocity = static_cast<float>(detection_data.detection(detection_idx).radial_velocity());
+        }
     }
 
     sensor_msgs::msg::PointCloud2 output;
@@ -207,6 +235,54 @@ void ROSOutput::PublishDetections(const osi3::SensorData& sensor_data, const std
     last_publish_time = std::chrono::steady_clock::now();
 
     detections_publisher_->publish(output);
+}
+
+void ROSOutput::PublishImage(const osi3::SensorData& sensor_data, const std::string& frame_id)
+{
+    if (sensor_data.sensor_view(0).camera_sensor_view_size() < 1)
+    {
+        return;
+    }
+
+    const auto& camera_sensor_view = sensor_data.sensor_view(0).camera_sensor_view(0);
+
+    const auto &img = camera_sensor_view.image_data();
+
+    auto msg = sensor_msgs::msg::Image();
+    msg.header.stamp = rclcpp::Clock().now();
+    msg.header.frame_id = "camera_link";
+
+    msg.width = camera_sensor_view.view_configuration().number_of_pixels_horizontal();
+    msg.height = camera_sensor_view.view_configuration().number_of_pixels_vertical();
+    msg.is_bigendian = false;
+
+    // Determine encoding
+    int channels = 0;
+    switch (camera_sensor_view.view_configuration().channel_format(0)) {
+        case osi3::CameraSensorViewConfiguration::ChannelFormat::CameraSensorViewConfiguration_ChannelFormat_CHANNEL_FORMAT_RGB_U8_LIN:
+            msg.encoding = "rgb8";
+            channels = 3;
+            break;
+        case osi3::CameraSensorViewConfiguration::ChannelFormat::CameraSensorViewConfiguration_ChannelFormat_CHANNEL_FORMAT_BAYER_BGGR_U8_LIN:
+            msg.encoding = "bgr8";
+            channels = 3;
+            break;
+        case osi3::CameraSensorViewConfiguration::ChannelFormat::CameraSensorViewConfiguration_ChannelFormat_CHANNEL_FORMAT_MONO_U8_LIN:
+            msg.encoding = "mono8";
+            channels = 1;
+            break;
+        default:
+            std::cout << "Unsupported OSI pixel format!" << std::endl;
+            return;
+    }
+
+    // No padding assumed (OSI typically stores contiguous image data)
+    msg.step = msg.width * channels;
+
+    msg.data.resize(img.size());
+    std::memcpy(msg.data.data(), img.data(), img.size());
+
+    camera_publisher_->publish(msg);
 }
 
 visualization_msgs::msg::Marker set_marker(const osi3::Vector3d& position,
