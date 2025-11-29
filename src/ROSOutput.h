@@ -4,15 +4,16 @@
 #ifndef _ROSOUTPUT_H_
 #define _ROSOUTPUT_H_
 
-#include "osi_sensordata.pb.h"
-
-#include "rclcpp/rclcpp.hpp"
-#include "visualization_msgs/msg/marker_array.hpp"
-#include "tf2_ros/transform_broadcaster.h"  // needs to be .h instead of .hpp for compatibility reasons
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
 #include <chrono>
 
+#include <sensor_msgs/msg/detail/image__struct.hpp>
+
+#include "osi_sensordata.pb.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "tf2_ros/transform_broadcaster.h"  // needs to be .h instead of .hpp for compatibility reasons
+#include "visualization_msgs/msg/marker_array.hpp"
 
 using namespace std;
 
@@ -28,6 +29,7 @@ public:
 
     void PublishGtObjects(osi3::SensorData &sensor_data);
     void PublishDetections(const osi3::SensorData& sensor_data, const std::string& frame_id);
+    void PublishImage(const osi3::SensorData& sensor_data, const std::string& frame_id);
     void PublishDetectedObjects(osi3::SensorData &sensor_data);
     void BroadcastTFs(osi3::SensorData& sensor_data);
 
@@ -35,6 +37,7 @@ private:
     rclcpp::Node::SharedPtr node_;
     shared_ptr<rclcpp::Publisher<visualization_msgs::msg::MarkerArray, allocator<void>>> gtobjects_publisher_;
     shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2, allocator<void>>> detections_publisher_;
+    shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image, allocator<void>>> camera_publisher_;
     shared_ptr<rclcpp::Publisher<visualization_msgs::msg::MarkerArray, allocator<void>>> detectedobjects_publisher_;
     shared_ptr<tf2_ros::TransformBroadcaster> transform_broadcaster_;
     string sensor_id;

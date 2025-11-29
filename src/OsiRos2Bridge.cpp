@@ -21,7 +21,7 @@ osi3::SensorData OsiRos2Bridge::Step(osi3::SensorData sensor_data, const std::st
     }
 
     myros_.PublishDetections(sensor_data, frame_id);
-
+    myros_.PublishImage(sensor_data, frame_id);
 
     return sensor_data;
 }
