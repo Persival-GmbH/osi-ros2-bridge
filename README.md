@@ -1,14 +1,9 @@
 # ASAM OSI ROS2 Bridge
 
-This [FMU](https://fmi-standard.org/)
-receives [ASAM OSI](https://github.com/OpenSimulationInterface/open-simulation-interface) SensorData and outputs various
-information as ROS2 messages.
-It enables ROS2 nodes to receive data from ASAM OSI FMUs, e.g. synthetic perception sensor data from a lidar or radar
-sensor model FMU.
-Furthermore, ROS2 visualization tools, such as [rviz2](https://github.com/ros2/rviz)
-or [Lichtblick](https://github.com/lichtblick-suite/lichtblick) can be used to visualize ASAM OSI data.
-If the ASAM OSI model_reference contains a path to a 3D model file and in the same path a .dae file exists, it is set as
-the marker mesh in the ROS2 marker array.
+This [FMU](https://fmi-standard.org/) receives [ASAM OSI](https://github.com/OpenSimulationInterface/open-simulation-interface) SensorData and outputs various information as ROS2 messages.
+It enables ROS2 nodes to receive data from ASAM OSI FMUs, e.g. synthetic perception sensor data from a lidar or radar sensor model FMU.
+Furthermore, ROS2 visualization tools, such as [rviz2](https://github.com/ros2/rviz) or [Lichtblick](https://github.com/lichtblick-suite/lichtblick) can be used to visualize ASAM OSI data.
+If the ASAM OSI model_reference contains a path to a 3D model file and in the same path a .dae file exists, it is set as the marker mesh in the ROS2 marker array.
 
 Here is a list of all ASAM OSI fields that are sent as ROS2 messages.
 
@@ -22,8 +17,7 @@ Here is a list of all ASAM OSI fields that are sent as ROS2 messages.
 The <sensor_id> is taken from the sensor_data.sensor_id field.
 
 Next to the ROS2 topics named above, a tf is published.
-It contains the following frames, that are coherent with the
-corresponding [ASAM OSI coordinate systems](https://opensimulationinterface.github.io/osi-antora-generator/asamosi/latest/interface/architecture/reference_points_coordinate_systems.html):
+It contains the following frames, that are coherent with the corresponding [ASAM OSI coordinate systems](https://opensimulationinterface.github.io/osi-antora-generator/asamosi/latest/interface/architecture/reference_points_coordinate_systems.html):
 
 | Frame                  | Description                                                                                             |
 |------------------------|---------------------------------------------------------------------------------------------------------|
